@@ -32,6 +32,7 @@ for (let i = -2; i <= 3; i++) {
 				<p>Exibindo entregas da {currentWeek.replace('w', 'Semana ')}.</p>
 			</div>
 			<div class="header-actions">
+				<button id="delete-selected" class="bulk-del hidden">🗑️ Excluir Selecionados (<span id="sel-count">0</span>)</button>
 				<button class="add-btn secondary" id="btn-bulk-artigo" data-type="artigo">Importar Artigos (CSV)</button>
 				<button class="add-btn secondary" id="btn-bulk-backlink" data-type="backlink">Importar Backlinks (CSV)</button>
 				<button class="add-btn" id="open-modal">+ Nova Tarefa</button>
@@ -41,17 +42,6 @@ for (let i = -2; i <= 3; i++) {
 
 		<section class="week-navigation">
 			<WeekSelector />
-		</section>
-
-		<section class="bulk-actions-bar glass">
-			<div class="selection-controls">
-				<label class="select-all-label">
-					<input type="checkbox" id="select-all" />
-					<span>Selecionar Tudo</span>
-				</label>
-				<span id="selection-count" class="hidden">0 selecionados</span>
-			</div>
-			<button id="delete-selected" class="delete-btn bulk-del hidden">Excluir Selecionados</button>
 		</section>
 
 		<div class="admin-controls glass">
@@ -71,8 +61,16 @@ for (let i = -2; i <= 3; i++) {
 
 		<div class="tasks-grid">
 			<div class="grid-section">
-				<div class="section-title">
-					<h2>Gerenciar Backlinks</h2>
+				<div class="section-header-flex">
+					<div class="section-title">
+						<h2>Gerenciar Backlinks</h2>
+					</div>
+					<div class="section-actions" id="backlinks-actions">
+						<label class="select-all-label">
+							<input type="checkbox" class="select-all-group" data-target="backlink" />
+							<span>Selecionar Todos</span>
+						</label>
+					</div>
 				</div>
 				<div class="cards-list">
 					{tasks.filter((t: any) => t.type === 'backlink').map((task: any) => (
@@ -88,8 +86,16 @@ for (let i = -2; i <= 3; i++) {
 			</div>
 
 			<div class="grid-section">
-				<div class="section-title">
-					<h2>Gerenciar Artigos</h2>
+				<div class="section-header-flex">
+					<div class="section-title">
+						<h2>Gerenciar Artigos</h2>
+					</div>
+					<div class="section-actions" id="artigos-actions">
+						<label class="select-all-label">
+							<input type="checkbox" class="select-all-group" data-target="artigo" />
+							<span>Selecionar Todos</span>
+						</label>
+					</div>
 				</div>
 				<div class="cards-list">
 					{tasks.filter((t: any) => t.type === 'artigo').map((task: any) => (
@@ -281,14 +287,32 @@ for (let i = -2; i <= 3; i++) {
 		gap: 2.5rem; /* Aumentado para dar mais ar entre os cards */
 	}
 
-	.admin-card-wrapper {
-		position: relative;
-		margin-bottom: 1rem;
-		background: rgba(255, 255, 255, 0.02);
-		border-radius: 16px;
-		border: 1px solid var(--border-glass);
-		transition: var(--transition);
-		overflow: hidden;
+	.section-header-flex {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1.5rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+		padding-bottom: 0.5rem;
+	}
+
+	.bulk-del {
+		background: #ff4d4d !important;
+		color: white;
+		border: none;
+		padding: 0.5rem 1rem;
+		border-radius: 8px;
+		font-size: 0.8rem;
+		font-weight: 600;
+		cursor: pointer;
+		margin-right: 1rem;
+		animation: pulse 2s infinite;
+	}
+
+	@keyframes pulse {
+		0% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.4); }
+		70% { box-shadow: 0 0 0 10px rgba(255, 77, 77, 0); }
+		100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
 	}
 
 	.admin-card-wrapper:hover {
@@ -753,31 +777,32 @@ for (let i = -2; i <= 3; i++) {
 		reader.readAsText(file);
 	});
 
-	// Bulk Selection and Deletion
-	const selectAllCheckbox = document.getElementById('select-all') as HTMLInputElement;
+	// Bulk Selection Logic Refined
 	const deleteSelectedBtn = document.getElementById('delete-selected');
-	const selectionCount = document.getElementById('selection-count');
-	const taskCheckboxes = () => document.querySelectorAll('.task-checkbox') as NodeListOf<HTMLInputElement>;
+	const selCountSpan = document.getElementById('sel-count');
+	const selectAllGroups = document.querySelectorAll('.select-all-group') as NodeListOf<HTMLInputElement>;
+	const getCheckboxes = () => document.querySelectorAll('.task-checkbox') as NodeListOf<HTMLInputElement>;
 
 	const updateSelectionUI = () => {
-		const selected = Array.from(taskCheckboxes()).filter(cb => cb.checked);
+		const selected = Array.from(getCheckboxes()).filter(cb => cb.checked);
 		const count = selected.length;
 		
-		if (selectionCount) {
-			selectionCount.textContent = `${count} selecionado(s)`;
-			selectionCount.classList.toggle('hidden', count === 0);
-		}
-		
-		if (deleteSelectedBtn) {
-			deleteSelectedBtn.classList.toggle('hidden', count === 0);
-		}
+		if (selCountSpan) selCountSpan.textContent = count.toString();
+		if (deleteSelectedBtn) deleteSelectedBtn.classList.toggle('hidden', count === 0);
 	};
 
-	selectAllCheckbox?.addEventListener('change', () => {
-		taskCheckboxes().forEach(cb => {
-			cb.checked = selectAllCheckbox.checked;
+	selectAllGroups.forEach(groupCb => {
+		groupCb.addEventListener('change', () => {
+			const targetType = groupCb.dataset.target;
+			getCheckboxes().forEach(cb => {
+				const card = cb.closest('.task-card') as HTMLElement;
+				const cardType = card.querySelector('.type-tag')?.textContent?.trim();
+				if (cardType === targetType) {
+					cb.checked = groupCb.checked;
+				}
+			});
+			updateSelectionUI();
 		});
-		updateSelectionUI();
 	});
 
 	document.addEventListener('change', (e) => {
@@ -787,7 +812,7 @@ for (let i = -2; i <= 3; i++) {
 	});
 
 	deleteSelectedBtn?.addEventListener('click', async () => {
-		const selectedIds = Array.from(taskCheckboxes())
+		const selectedIds = Array.from(getCheckboxes())
 			.filter(cb => cb.checked)
 			.map(cb => cb.dataset.id);
 
