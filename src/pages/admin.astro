@@ -425,6 +425,10 @@ for (let i = -2; i <= 3; i++) {
 </style>
 
 <script>
+	// Capturar a semana atual do lado do cliente para os formulários
+	const urlParams = new URLSearchParams(window.location.search);
+	const currentWeek = urlParams.get('week') || 'w13'; // Fallback seguro
+
 	const openModal = document.getElementById('open-modal');
 	const closeModal = document.getElementById('close-modal');
 	const modalOverlay = document.getElementById('modal-overlay');
