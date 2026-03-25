@@ -278,18 +278,83 @@ for (let i = -2; i <= 3; i++) {
 	.grid-section {
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
+		gap: 2.5rem; /* Aumentado para dar mais ar entre os cards */
 	}
 
 	.admin-card-wrapper {
 		position: relative;
+		margin-bottom: 1rem;
+		background: rgba(255, 255, 255, 0.02);
+		border-radius: 16px;
+		border: 1px solid var(--border-glass);
+		transition: var(--transition);
+		overflow: hidden;
+	}
+
+	.admin-card-wrapper:hover {
+		background: rgba(255, 255, 255, 0.04);
+		border-color: rgba(255, 255, 255, 0.1);
 	}
 
 	.actions {
 		display: flex;
 		gap: 0.5rem;
-		margin-top: 0.5rem;
+		padding: 1rem 1.5rem;
+		border-top: 1px solid var(--border-glass);
 		justify-content: flex-end;
+		background: rgba(0, 0, 0, 0.2);
+	}
+
+	/* Barra de ações em massa */
+	.bulk-actions-bar {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1.2rem 1.5rem;
+		margin-bottom: 2rem;
+		border-radius: 16px;
+		background: rgba(255, 255, 255, 0.03);
+		border: 1px solid var(--border-glass);
+	}
+
+	.select-all-label {
+		display: flex;
+		align-items: center;
+		gap: 0.8rem;
+		cursor: pointer;
+		font-size: 0.95rem;
+		font-weight: 500;
+	}
+
+	#select-all {
+		width: 18px;
+		height: 18px;
+		accent-color: var(--primary);
+	}
+
+	.bulk-del {
+		background: #ff4d4d !important;
+		font-size: 0.85rem;
+		font-weight: 600;
+		padding: 0.6rem 1.2rem;
+		border-radius: 8px;
+		color: white;
+		border: none;
+		cursor: pointer;
+		transition: var(--transition);
+	}
+
+	.bulk-del:hover {
+		background: #ff3333 !important;
+		transform: translateY(-1px);
+	}
+
+	#selection-count {
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+		margin-left: 1.5rem;
+		padding-left: 1.5rem;
+		border-left: 1px solid var(--border-glass);
 	}
 
 	.actions button {
