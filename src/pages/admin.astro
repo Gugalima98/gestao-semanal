@@ -32,7 +32,6 @@ for (let i = -2; i <= 3; i++) {
 				<p>Exibindo entregas da {currentWeek.replace('w', 'Semana ')}.</p>
 			</div>
 			<div class="header-actions">
-				<button id="delete-selected" class="bulk-del hidden">🗑️ Excluir Selecionados (<span id="sel-count">0</span>)</button>
 				<button class="add-btn secondary" id="btn-bulk-artigo" data-type="artigo">Importar Artigos (CSV)</button>
 				<button class="add-btn secondary" id="btn-bulk-backlink" data-type="backlink">Importar Backlinks (CSV)</button>
 				<button class="add-btn" id="open-modal">+ Nova Tarefa</button>
@@ -66,6 +65,7 @@ for (let i = -2; i <= 3; i++) {
 						<h2>Gerenciar Backlinks</h2>
 					</div>
 					<div class="section-actions" id="backlinks-actions">
+						<button class="bulk-del btn-bulk-delete hidden">🗑️ Excluir Selecionados (<span class="sel-count-txt">0</span>)</button>
 						<label class="select-all-label">
 							<input type="checkbox" class="select-all-group" data-target="backlink" />
 							<span>Selecionar Todos</span>
@@ -91,6 +91,7 @@ for (let i = -2; i <= 3; i++) {
 						<h2>Gerenciar Artigos</h2>
 					</div>
 					<div class="section-actions" id="artigos-actions">
+						<button class="bulk-del btn-bulk-delete hidden">🗑️ Excluir Selecionados (<span class="sel-count-txt">0</span>)</button>
 						<label class="select-all-label">
 							<input type="checkbox" class="select-all-group" data-target="artigo" />
 							<span>Selecionar Todos</span>
@@ -778,8 +779,8 @@ for (let i = -2; i <= 3; i++) {
 	});
 
 	// Bulk Selection Logic Refined
-	const deleteSelectedBtn = document.getElementById('delete-selected');
-	const selCountSpan = document.getElementById('sel-count');
+	const bulkDeleteBtns = document.querySelectorAll('.btn-bulk-delete');
+	const selCountTexts = document.querySelectorAll('.sel-count-txt');
 	const selectAllGroups = document.querySelectorAll('.select-all-group') as NodeListOf<HTMLInputElement>;
 	const getCheckboxes = () => document.querySelectorAll('.task-checkbox') as NodeListOf<HTMLInputElement>;
 
@@ -787,8 +788,8 @@ for (let i = -2; i <= 3; i++) {
 		const selected = Array.from(getCheckboxes()).filter(cb => cb.checked);
 		const count = selected.length;
 		
-		if (selCountSpan) selCountSpan.textContent = count.toString();
-		if (deleteSelectedBtn) deleteSelectedBtn.classList.toggle('hidden', count === 0);
+		selCountTexts.forEach(txt => txt.textContent = count.toString());
+		bulkDeleteBtns.forEach(btn => btn.classList.toggle('hidden', count === 0));
 	};
 
 	selectAllGroups.forEach(groupCb => {
@@ -796,7 +797,7 @@ for (let i = -2; i <= 3; i++) {
 			const targetType = groupCb.dataset.target;
 			getCheckboxes().forEach(cb => {
 				const card = cb.closest('.task-card') as HTMLElement;
-				const cardType = card.querySelector('.type-tag')?.textContent?.trim();
+				const cardType = card.querySelector('.type-tag')?.textContent?.trim()?.toLowerCase();
 				if (cardType === targetType) {
 					cb.checked = groupCb.checked;
 				}
@@ -811,26 +812,28 @@ for (let i = -2; i <= 3; i++) {
 		}
 	});
 
-	deleteSelectedBtn?.addEventListener('click', async () => {
-		const selectedIds = Array.from(getCheckboxes())
-			.filter(cb => cb.checked)
-			.map(cb => cb.dataset.id);
+	bulkDeleteBtns.forEach(btn => {
+		btn.addEventListener('click', async () => {
+			const selectedIds = Array.from(getCheckboxes())
+				.filter(cb => cb.checked)
+				.map(cb => cb.dataset.id);
 
-		if (selectedIds.length === 0) return;
+			if (selectedIds.length === 0) return;
 
-		if (confirm(`Deseja realmente excluir ${selectedIds.length} tarefa(s)?`)) {
-			try {
-				const res = await fetch('/api/tasks.json', {
-					method: 'DELETE',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ ids: selectedIds })
-				});
-				if (res.ok) window.location.reload();
-			} catch (err) {
-				console.error(err);
-				alert('Erro ao excluir tarefas');
+			if (confirm(`Deseja realmente excluir ${selectedIds.length} tarefa(s)?`)) {
+				try {
+					const res = await fetch('/api/tasks.json', {
+						method: 'DELETE',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ ids: selectedIds })
+					});
+					if (res.ok) window.location.reload();
+				} catch (err) {
+					console.error(err);
+					alert('Erro ao excluir tarefas');
+				}
 			}
-		}
+		});
 	});
 
 	taskForm?.addEventListener('submit', async (e) => {
