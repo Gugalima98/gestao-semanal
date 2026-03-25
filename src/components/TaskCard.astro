@@ -1,0 +1,158 @@
+---
+interface Props {
+  title: string;
+  type: 'backlink' | 'artigo';
+  status: 'pending' | 'progress' | 'done';
+  description?: string;
+  link?: string;
+  focus_keyword?: string;
+  target_url?: string;
+  published_url?: string;
+}
+
+const { title, type, status, description, link, focus_keyword, target_url, published_url } = Astro.props;
+
+const statusLabel = {
+  pending: 'Pendente',
+  progress: 'Em Andamento',
+  done: 'Concluído'
+};
+
+const finalLink = published_url || link;
+---
+
+<div class="glass glass-interactive task-card">
+  <div class="card-header">
+    <span class={`badge badge-${status}`}>{statusLabel[status]}</span>
+    <span class="type-tag">{type}</span>
+  </div>
+  
+  <div class="card-body">
+    <h3>Palavra-chave: {title}</h3>
+    {description && <p class="desc">{description}</p>}
+    
+    <div class="seo-meta">
+      {focus_keyword && (
+        <div class="meta-item">
+          <span class="meta-label">Foco:</span>
+          <span class="meta-value">{focus_keyword}</span>
+        </div>
+      )}
+      {target_url && (
+        <div class="meta-item">
+          <span class="meta-label">{type === 'backlink' ? 'Alvo:' : 'Site:'}</span>
+          <span class="meta-value truncate">{target_url}</span>
+        </div>
+      )}
+    </div>
+  </div>
+
+  <div class="card-footer">
+    {finalLink ? (
+      <a href={finalLink} target="_blank" class="link-btn">
+        {published_url ? 'Ver Link Publicado' : 'Ver Detalhes'}
+      </a>
+    ) : (
+      <span class="no-link">
+        {status === 'done' ? 'Link pendente' : 'Aguardando publicação'}
+      </span>
+    )}
+  </div>
+</div>
+
+<style>
+  .task-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: var(--transition);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .type-tag {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .seo-meta {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .meta-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    gap: 1rem;
+  }
+
+  .meta-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .meta-value {
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  .truncate {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-glass);
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .link-btn {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    padding: 0.4rem 1rem;
+    border-radius: 8px;
+  }
+
+  .link-btn:hover {
+    background: var(--primary);
+    color: white;
+  }
+
+  .no-link {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+</style>

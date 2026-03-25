@@ -1,0 +1,35 @@
+[
+  {
+    "id": "1774458641539",
+    "type": "artigo",
+    "week": "w12",
+    "status": "progress",
+    "focus_keyword": "asdasdasd",
+    "target_url": "http://localhost:4321/admin",
+    "published_url": "asdasdasdasd",
+    "title": "asdasdasd",
+    "description": ""
+  },
+  {
+    "id": "1774458847149",
+    "type": "backlink",
+    "week": "w13",
+    "status": "progress",
+    "focus_keyword": "asdasda",
+    "target_url": "asdasdasdasd",
+    "published_url": "",
+    "title": "asdasda",
+    "description": ""
+  },
+  {
+    "id": "1774458925157",
+    "type": "artigo",
+    "week": "w15",
+    "status": "pending",
+    "focus_keyword": "asdasd",
+    "target_url": "asd",
+    "published_url": "",
+    "title": "asdasd",
+    "description": ""
+  }
+]

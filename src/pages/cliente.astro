@@ -1,0 +1,142 @@
+---
+export const prerender = false;
+import Layout from '../layouts/Layout.astro';
+import TaskCard from '../components/TaskCard.astro';
+import WeekSelector from '../components/WeekSelector.astro';
+
+// Fetch real data from API
+const response = await fetch(`${Astro.url.origin}/api/tasks.json`);
+const allTasks = await response.json();
+
+// Lógica para obter a semana atual
+const now = new Date();
+const oneJan = new Date(now.getFullYear(), 0, 1);
+const numberOfDays = Math.floor((now.getTime() - oneJan.getTime()) / (24 * 60 * 60 * 1000));
+const currentWeekOfYear = Math.ceil((now.getDay() + 1 + numberOfDays) / 7);
+
+const currentWeek = Astro.url.searchParams.get('week') || `w${currentWeekOfYear}`;
+const tasks = allTasks.filter((t: any) => t.week === currentWeek);
+---
+
+<Layout title="Dashboard Cliente | Task Manager">
+	<main class="container">
+		<header class="dashboard-header flex-header">
+			<div>
+				<h1>Olá, Cliente</h1>
+				<p>Acompanhe o progresso das tarefas planejadas.</p>
+			</div>
+			<div class="header-actions">
+				<a href="/" class="logout">Sair</a>
+			</div>
+		</header>
+
+		<section class="week-navigation">
+			<WeekSelector />
+		</section>
+
+		<div class="tasks-grid">
+			<div class="grid-section">
+				<div class="section-title">
+					<h2>Backlinks</h2>
+					<span class="count">{tasks.filter(t => t.type === 'backlink').length}</span>
+				</div>
+				<div class="cards-list">
+					{tasks.filter(t => t.type === 'backlink').map(task => (
+						<TaskCard {...task as any} />
+					))}
+				</div>
+			</div>
+
+			<div class="grid-section">
+				<div class="section-title">
+					<h2>Artigos de Blog</h2>
+					<span class="count">{tasks.filter(t => t.type === 'artigo').length}</span>
+				</div>
+				<div class="cards-list">
+					{tasks.filter(t => t.type === 'artigo').map(task => (
+						<TaskCard {...task as any} />
+					))}
+				</div>
+			</div>
+		</div>
+	</main>
+</Layout>
+
+<style>
+	.dashboard-header {
+		margin: 2rem 0;
+		padding-bottom: 2rem;
+		border-bottom: 1px solid var(--border-glass);
+	}
+
+	.flex-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	h1 {
+		font-size: 2.2rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.week-navigation {
+		margin-bottom: 3rem;
+	}
+
+	.tasks-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 3rem;
+	}
+
+	.grid-section {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.section-title {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.section-title h2 {
+		font-size: 1.5rem;
+		color: var(--text-secondary);
+	}
+
+	.count {
+		background: var(--bg-card);
+		padding: 0.2rem 0.6rem;
+		border-radius: 6px;
+		font-size: 0.8rem;
+		color: var(--primary);
+		border: 1px solid var(--border-glass);
+	}
+
+	.cards-list {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.logout {
+		font-size: 0.9rem;
+		color: var(--danger);
+		padding: 0.5rem 1rem;
+		border-radius: 8px;
+		background: rgba(239, 68, 68, 0.05);
+	}
+
+	.logout:hover {
+		background: rgba(239, 68, 68, 0.1);
+	}
+
+	@media (max-width: 900px) {
+		.tasks-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

@@ -1,0 +1,482 @@
+---
+export const prerender = false;
+import Layout from '../layouts/Layout.astro';
+import TaskCard from '../components/TaskCard.astro';
+import WeekSelector from '../components/WeekSelector.astro';
+
+// Fetch real data from API
+const response = await fetch(`${Astro.url.origin}/api/tasks.json`);
+const allTasks = await response.json();
+
+// Lógica para obter a semana atual
+const now = new Date();
+const oneJan = new Date(now.getFullYear(), 0, 1);
+const numberOfDays = Math.floor((now.getTime() - oneJan.getTime()) / (24 * 60 * 60 * 1000));
+const currentWeekOfYear = Math.ceil((now.getDay() + 1 + numberOfDays) / 7);
+
+const currentWeek = Astro.url.searchParams.get('week') || `w${currentWeekOfYear}`;
+const tasks = allTasks.filter((t: any) => t.week === currentWeek);
+
+// Gerar opções de semana para o modal (mesmo range do seletor)
+const weekOptions = [];
+for (let i = -2; i <= 3; i++) {
+	weekOptions.push(currentWeekOfYear + i);
+}
+---
+
+<Layout title="Admin Panel | Task Manager">
+	<main class="container">
+		<header class="dashboard-header flex-header">
+			<div>
+				<h1>Acesso Admin - {currentWeek.toUpperCase()}</h1>
+				<p>Exibindo entregas da {currentWeek.replace('w', 'Semana ')}.</p>
+			</div>
+			<div class="header-actions">
+				<button class="add-btn" id="open-modal">+ Nova Tarefa</button>
+				<a href="/" class="logout">Sair</a>
+			</div>
+		</header>
+
+		<section class="week-navigation">
+			<WeekSelector />
+		</section>
+
+		<div class="admin-controls glass">
+			<div class="stat-card">
+				<span class="label">Total de Tarefas</span>
+				<span class="value">{tasks.length}</span>
+			</div>
+			<div class="stat-card">
+				<span class="label">Concluídas</span>
+				<span class="value success">{tasks.filter((t: any) => t.status === 'done').length}</span>
+			</div>
+			<div class="stat-card">
+				<span class="label">Pendentes</span>
+				<span class="value warning">{tasks.filter((t: any) => t.status !== 'done').length}</span>
+			</div>
+		</div>
+
+		<div class="tasks-grid">
+			<div class="grid-section">
+				<div class="section-title">
+					<h2>Gerenciar Backlinks</h2>
+				</div>
+				<div class="cards-list">
+					{tasks.filter((t: any) => t.type === 'backlink').map((task: any) => (
+						<div class="admin-card-wrapper">
+							<TaskCard {...task} />
+							<div class="actions">
+								<button class="edit" data-task={JSON.stringify(task)}>Editar</button>
+								<button class="delete" data-id={task.id}>Excluir</button>
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
+
+			<div class="grid-section">
+				<div class="section-title">
+					<h2>Gerenciar Artigos</h2>
+				</div>
+				<div class="cards-list">
+					{tasks.filter((t: any) => t.type === 'artigo').map((task: any) => (
+						<div class="admin-card-wrapper">
+							<TaskCard {...task} />
+							<div class="actions">
+								<button class="edit" data-task={JSON.stringify(task)}>Editar</button>
+								<button class="delete" data-id={task.id}>Excluir</button>
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<!-- Modal para Nova/Editar Tarefa -->
+	<div id="modal-overlay" class="modal-overlay hidden">
+		<div class="glass modal-content">
+			<h2 id="modal-title">Nova Tarefa</h2>
+			<form id="task-form" class="task-form">
+				<input type="hidden" name="id" id="task-id" />
+				
+				<div class="input-row">
+					<div class="input-group" id="group-type">
+						<label>Tipo de Entrega</label>
+						<select name="type" id="form-type" class="glass">
+							<option value="backlink">Backlink</option>
+							<option value="artigo">Artigo</option>
+						</select>
+					</div>
+					<div class="input-group" id="group-week">
+						<label>Semana</label>
+						<select name="week" id="form-week" class="glass">
+							{weekOptions.map(num => (
+								<option value={`w${num}`} selected={`w${num}` === currentWeek}>Semana {num}</option>
+							))}
+						</select>
+					</div>
+				</div>
+
+				<div class="input-group" id="group-status">
+					<label>Status</label>
+					<select name="status" id="form-status" class="glass">
+						<option value="pending">Pendente</option>
+						<option value="progress">Em Andamento</option>
+						<option value="done">Concluído</option>
+					</select>
+				</div>
+
+				<!-- Campos Unificados de SEO -->
+				<div id="seo-fields" class="type-specific-fields">
+					<div class="input-row">
+						<div class="input-group">
+							<label>Palavra-chave de Foco</label>
+							<input type="text" name="focus_keyword" id="form-focus" required placeholder="Ex: gestão de clientes" class="glass" />
+						</div>
+						<div class="input-group">
+							<label id="label-target">URL Alvo / Site</label>
+							<input type="text" name="target_url" id="form-target" required placeholder="Ex: seu-site.com" class="glass" />
+						</div>
+					</div>
+					<div id="published-url-group" class="input-group hidden">
+						<label id="label-published">Link Publicado (URL Final)</label>
+						<input type="text" name="published_url" id="form-published" placeholder="Ex: site.com/link-final" class="glass" />
+					</div>
+				</div>
+
+				<!-- Título e Descrição agora são opcionais ou ocultos -->
+				<input type="hidden" name="title" id="form-title" />
+				<input type="hidden" name="description" id="form-desc" />
+				
+				<div class="modal-actions">
+					<button type="button" id="close-modal" class="cancel-btn">Cancelar</button>
+					<button type="submit" class="save-btn">Salvar Tarefa</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</Layout>
+
+<style>
+	.dashboard-header {
+		margin: 2rem 0;
+		padding-bottom: 2rem;
+		border-bottom: 1px solid var(--border-glass);
+	}
+
+	.flex-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.header-actions {
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+	}
+
+	.add-btn {
+		background: var(--primary);
+		color: white;
+		border: none;
+		padding: 0.7rem 1.5rem;
+		border-radius: 8px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: var(--transition);
+	}
+
+	.add-btn:hover {
+		transform: scale(1.05);
+		box-shadow: 0 0 20px -5px var(--primary);
+	}
+
+	.admin-controls {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		padding: 1.5rem;
+		margin-bottom: 3rem;
+		gap: 2rem;
+	}
+
+	.stat-card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		text-align: center;
+	}
+
+	.stat-card .label {
+		font-size: 0.8rem;
+		color: var(--text-secondary);
+		text-transform: uppercase;
+	}
+
+	.stat-card .value {
+		font-size: 1.8rem;
+		font-weight: 700;
+	}
+
+	.value.success { color: var(--success); }
+	.value.warning { color: var(--warning); }
+
+	.tasks-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 3rem;
+	}
+
+	.grid-section {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.admin-card-wrapper {
+		position: relative;
+	}
+
+	.actions {
+		display: flex;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+		justify-content: flex-end;
+	}
+
+	.actions button {
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid var(--border-glass);
+		color: var(--text-secondary);
+		padding: 0.3rem 0.8rem;
+		border-radius: 6px;
+		font-size: 0.75rem;
+		cursor: pointer;
+	}
+
+	.actions .delete:hover { color: var(--danger); border-color: var(--danger); }
+	.actions .edit:hover { color: var(--primary); border-color: var(--primary); }
+
+	.logout {
+		font-size: 0.9rem;
+		color: var(--danger);
+		padding: 0.5rem 1rem;
+		border-radius: 8px;
+		background: rgba(239, 68, 68, 0.05);
+	}
+
+	/* CSS do Modal */
+	.modal-overlay {
+		position: fixed;
+		top: 0; left: 0; width: 100%; height: 100%;
+		background: rgba(0,0,0,0.8);
+		backdrop-filter: blur(5px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+		transition: opacity 0.3s;
+	}
+
+	.modal-overlay.hidden {
+		display: none;
+		opacity: 0;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	.modal-content {
+		width: 90%;
+		max-width: 500px;
+		padding: 2.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.task-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.2rem;
+	}
+
+	.input-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+	}
+
+	.input-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.input-group label {
+		font-size: 0.85rem;
+		font-weight: 500;
+		color: var(--text-secondary);
+	}
+
+	.input-group input, .input-group select, .input-group textarea {
+		padding: 0.8rem;
+		color: white;
+		border: 1px solid var(--border-glass);
+		border-radius: 8px;
+		background: rgba(255,255,255,0.05);
+		outline: none;
+	}
+
+	.modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 1rem;
+		margin-top: 1rem;
+	}
+
+	.cancel-btn {
+		background: transparent;
+		color: var(--text-secondary);
+		border: none;
+		cursor: pointer;
+	}
+
+	.save-btn {
+		background: var(--primary);
+		color: white;
+		border: none;
+		padding: 0.7rem 1.5rem;
+		border-radius: 8px;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	@media (max-width: 900px) {
+		.tasks-grid { grid-template-columns: 1fr; }
+		.admin-controls { grid-template-columns: 1fr; }
+	}
+</style>
+
+<script>
+	const openModal = document.getElementById('open-modal');
+	const closeModal = document.getElementById('close-modal');
+	const modalOverlay = document.getElementById('modal-overlay');
+	const taskForm = document.getElementById('task-form') as HTMLFormElement;
+	const modalTitle = document.getElementById('modal-title');
+
+	// Inputs do Form
+	const taskId = document.getElementById('task-id') as HTMLInputElement;
+	const formTitle = document.getElementById('form-title') as HTMLInputElement;
+	const formType = document.getElementById('form-type') as HTMLSelectElement;
+	const formWeek = document.getElementById('form-week') as HTMLSelectElement;
+	const formStatus = document.getElementById('form-status') as HTMLSelectElement;
+	const formDesc = document.getElementById('form-desc') as HTMLTextAreaElement;
+	
+	const formFocus = document.getElementById('form-focus') as HTMLInputElement;
+	const formTarget = document.getElementById('form-target') as HTMLInputElement;
+	const formPublished = document.getElementById('form-published') as HTMLInputElement;
+	const publishedUrlGroup = document.getElementById('published-url-group');
+	const labelTarget = document.getElementById('label-target');
+
+	const toggleTypeFields = () => {
+		const isEdit = !!taskId.value;
+		const isBacklink = formType.value === 'backlink';
+
+		// Ajustar Label do Alvo
+		if (labelTarget) {
+			labelTarget.textContent = isBacklink ? 'URL Alvo (Destino)' : 'Site de Postagem';
+		}
+
+		// Published URL só aparece na edição para ambos
+		if (isEdit) {
+			publishedUrlGroup?.classList.remove('hidden');
+		} else {
+			publishedUrlGroup?.classList.add('hidden');
+		}
+	};
+
+	formType.addEventListener('change', toggleTypeFields);
+
+	const resetForm = () => {
+		taskForm.reset();
+		taskId.value = '';
+		if (modalTitle) modalTitle.textContent = 'Nova Tarefa';
+		toggleTypeFields();
+	};
+
+	openModal?.addEventListener('click', () => {
+		resetForm();
+		modalOverlay?.classList.remove('hidden');
+	});
+
+	closeModal?.addEventListener('click', () => modalOverlay?.classList.add('hidden'));
+
+	// Ações de Excluir
+	document.querySelectorAll('.delete').forEach(btn => {
+		btn.addEventListener('click', async () => {
+			const id = (btn as HTMLElement).dataset.id;
+			if (confirm('Deseja realmente excluir esta tarefa?')) {
+				try {
+					const res = await fetch('/api/tasks.json', {
+						method: 'DELETE',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ id })
+					});
+					if (res.ok) window.location.reload();
+				} catch (err) {
+					console.error(err);
+				}
+			}
+		});
+	});
+
+	// Ações de Editar
+	document.querySelectorAll('.edit').forEach(btn => {
+		btn.addEventListener('click', () => {
+			const task = JSON.parse((btn as HTMLElement).dataset.task || '{}');
+			taskId.value = task.id;
+			formType.value = task.type;
+			formWeek.value = task.week;
+			formStatus.value = task.status;
+			
+			// Novos campos de SEO
+			formFocus.value = task.focus_keyword || '';
+			formTarget.value = task.target_url || '';
+			formPublished.value = task.published_url || '';
+
+			if (modalTitle) modalTitle.textContent = 'Editar Tarefa';
+			toggleTypeFields();
+			modalOverlay?.classList.remove('hidden');
+		});
+	});
+
+	taskForm?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const formData = new FormData(taskForm);
+		const data = Object.fromEntries(formData);
+		const isEdit = !!data.id;
+
+		// Sempre unificar Título com Palavra-chave
+		data.title = data.focus_keyword;
+
+		try {
+			const method = isEdit ? 'PUT' : 'POST';
+			const res = await fetch('/api/tasks.json', {
+				method: method,
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(data)
+			});
+
+			if (res.ok) {
+				window.location.reload();
+			} else {
+				alert('Erro ao salvar a tarefa');
+			}
+		} catch (err) {
+			console.error(err);
+		}
+	});
+</script>
