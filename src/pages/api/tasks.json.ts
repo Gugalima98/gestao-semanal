@@ -1,61 +1,52 @@
 import type { APIRoute } from 'astro';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { kv, createClient } from '@vercel/kv';
+import Redis from 'ioredis';
 
 export const prerender = false;
 
 const dataPath = path.resolve('./src/data/tasks.json');
 
-// Stealth environment detection to bypass Vite build-time replacement
+// Get environment variables safely for Astro/Vercel
 const getEnv = (key: string) => {
     try {
         const p = (globalThis as any).process;
         if (p && p.env && p.env[key]) return p.env[key];
-
         const m = (import.meta as any).env;
         if (m && m[key]) return m[key];
     } catch { }
     return undefined;
 };
 
-const isProduction = !!(getEnv('KV_REST_API_URL') || getEnv('REDIS_URL') || getEnv('VERCEL') || getEnv('KV_URL'));
+const isProduction = !!(getEnv('REDIS_URL') || getEnv('KV_URL') || getEnv('VERCEL'));
 
-function getKVClient() {
-    // 1. Try Vercel KV Standard names (Runtime access)
-    const url = getEnv('KV_REST_API_URL') || getEnv('KV_URL') || getEnv('UPSTASH_REDIS_REST_URL');
-    const token = getEnv('KV_REST_API_TOKEN') || getEnv('KV_TOKEN') || getEnv('UPSTASH_REDIS_REST_TOKEN');
+// Global Redis instance for connection reuse
+let redisClient: Redis | null = null;
 
-    if (url && token) {
-        const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
-        return createClient({ url: cleanUrl, token });
+function getClient() {
+    if (redisClient) return redisClient;
+
+    const redisUrl = getEnv('REDIS_URL') || getEnv('KV_URL');
+    if (redisUrl) {
+        // ioredis handles redis:// URLs natively
+        redisClient = new Redis(redisUrl, {
+            connectTimeout: 10000,
+            maxRetriesPerRequest: 1
+        });
+        return redisClient;
     }
-
-    // 2. Extract from REDIS_URL (The one currently in Vercel panel)
-    const redisUrl = getEnv('REDIS_URL');
-    if (redisUrl?.startsWith('redis://')) {
-        try {
-            const u = new URL(redisUrl);
-            return createClient({ url: `https://${u.hostname}`, token: u.password });
-        } catch { }
-    }
-
-    return kv;
+    return null;
 }
-
-const kvClient = getKVClient();
 
 async function getTasks() {
     try {
         if (isProduction) {
-            // Respecting the speed: 3s timeout for reads to avoid hanging SSR
-            const fetchPromise = kvClient.get('tasks');
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error("Timeout Banco (3s)")), 3000)
-            );
+            const client = getClient();
+            if (!client) throw new Error("REDIS_URL não configurada em produção");
 
-            const tasks = await Promise.race([fetchPromise, timeoutPromise]) as any[];
-            return tasks || [];
+            const data = await client.get('tasks');
+            if (!data) return [];
+            return JSON.parse(data);
         }
         const fileContent = await fs.readFile(dataPath, 'utf-8');
         return JSON.parse(fileContent);
@@ -66,14 +57,18 @@ async function getTasks() {
 }
 
 async function saveTasks(tasks: any[]) {
-    if (isProduction) {
-        const savePromise = kvClient.set('tasks', tasks);
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Timeout Salvar (5s)")), 5000)
-        );
-        await Promise.race([savePromise, timeoutPromise]);
-    } else {
-        await fs.writeFile(dataPath, JSON.stringify(tasks, null, 2));
+    try {
+        if (isProduction) {
+            const client = getClient();
+            if (!client) throw new Error("REDIS_URL não configurada para salvamento");
+
+            await client.set('tasks', JSON.stringify(tasks));
+        } else {
+            await fs.writeFile(dataPath, JSON.stringify(tasks, null, 2));
+        }
+    } catch (error: any) {
+        console.error("SAVE Error:", error);
+        throw error;
     }
 }
 
@@ -106,8 +101,7 @@ export const POST: APIRoute = async ({ request }) => {
                 title: body.focus_keyword || body.title || 'Sem título'
             };
             tasks.push(taskWithId);
-            await saveTasks(taskWithId); // Reverting toward original behavior if needed
-            // Wait, original behavior was tasks.push and saveTasks(tasks)
+            await saveTasks(tasks);
             return new Response(JSON.stringify(taskWithId), { status: 201 });
         }
     } catch (error: any) {
