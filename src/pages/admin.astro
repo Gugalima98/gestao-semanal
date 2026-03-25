@@ -65,8 +65,8 @@ for (let i = -2; i <= 3; i++) {
 				<span class="value success">{tasks.filter((t: any) => t.status === 'done').length}</span>
 			</div>
 			<div class="stat-card">
-				<span class="label">Pendentes</span>
-				<span class="value warning">{tasks.filter((t: any) => t.status !== 'done').length}</span>
+				<span class="label">Em Andamento</span>
+				<span class="value warning">{tasks.filter((t: any) => t.status === 'progress').length}</span>
 			</div>
 		</div>
 
@@ -149,7 +149,6 @@ for (let i = -2; i <= 3; i++) {
 				<div class="input-group" id="group-status">
 					<label>Status</label>
 					<select name="status" id="form-status" class="glass">
-						<option value="pending">Pendente</option>
 						<option value="progress">Em Andamento</option>
 						<option value="done">Concluído</option>
 					</select>

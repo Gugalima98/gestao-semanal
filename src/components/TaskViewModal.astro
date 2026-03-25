@@ -19,10 +19,7 @@
 					<span class="view-label">Tipo:</span>
 					<span class="view-value" id="view-type"></span>
 				</div>
-				<div class="view-group">
-					<span class="view-label">Status:</span>
-					<span class="view-value" id="view-status"></span>
-				</div>
+				
 			</div>
 
 			<div class="view-group" id="view-desc-group">
@@ -194,7 +191,7 @@
 	}
 
 	.cancel-btn:hover {
-		background: rgba(255, 255, 255, 0.1);
+		background: rgba(255, 255, 0.1);
 	}
 
 	@media (min-width: 481px) {
@@ -206,11 +203,11 @@
 
 <script>
 	const statusLabels = {
-		pending: 'Pendente',
+		'in-progress': 'Em Andamento',
+		completed: 'Concluído',
 		progress: 'Em Andamento',
 		done: 'Concluído'
 	};
-
 	// Event Delegation for Modal
 	document.addEventListener('click', (e) => {
 		const target = e.target as HTMLElement;

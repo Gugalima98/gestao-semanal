@@ -15,7 +15,8 @@ interface Props {
 const { id, title, type, status, description, link, focus_keyword, target_url, published_url, showSelection = false } = Astro.props;
 
 const statusLabel = {
-  pending: 'Pendente',
+  'in-progress': 'Em Andamento',
+  completed: 'Concluído',
   progress: 'Em Andamento',
   done: 'Concluído'
 };

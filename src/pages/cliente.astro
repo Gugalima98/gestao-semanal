@@ -44,8 +44,8 @@ const tasks = allTasks.filter((t: any) => t.week === currentWeek);
 				<span class="value success">{tasks.filter((t: any) => t.status === 'done').length}</span>
 			</div>
 			<div class="stat-card">
-				<span class="label">Pendentes</span>
-				<span class="value warning">{tasks.filter((t: any) => t.status !== 'done').length}</span>
+				<span class="label">Em Andamento</span>
+				<span class="value warning">{tasks.filter((t: any) => t.status === 'progress').length}</span>
 			</div>
 		</div>
 
