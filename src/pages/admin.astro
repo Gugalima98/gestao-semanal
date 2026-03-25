@@ -302,36 +302,30 @@ for (let i = -2; i <= 3; i++) {
 	.section-actions {
 		display: flex;
 		align-items: center;
-		gap: 2rem; /* Distanciamento aumentado para não ficar colado */
-	}
-
-	.action-divider {
-		width: 1px;
-		height: 14px;
-		background: rgba(255, 255, 255, 0.1);
+		gap: 1.5rem;
 	}
 
 	.bulk-del {
-		background: rgba(255, 77, 77, 0.05) !important;
+		background: none !important;
 		color: #ff4d4d;
-		border: 1px solid rgba(255, 77, 77, 0.15);
-		padding: 0.2rem 0.5rem;
-		border-radius: 4px;
-		font-size: 0.65rem;
-		font-weight: 500;
+		border: none;
+		padding: 0;
+		font-size: 0.85rem;
+		font-weight: 600;
 		cursor: pointer;
-		transition: all 0.2s ease;
 		display: flex;
 		align-items: center;
-		gap: 0.3rem;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
+		gap: 0.5rem;
+		opacity: 0.8;
+		transition: var(--transition);
 	}
 
 	.bulk-del:hover {
-		background: rgba(255, 77, 77, 0.15) !important;
-		border-color: #ff4d4d;
+		opacity: 1;
+		text-decoration: underline;
 	}
+
+	.action-divider { display: none; }
 
 	.admin-card-wrapper:hover {
 		background: rgba(255, 255, 255, 0.04);
