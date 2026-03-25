@@ -73,6 +73,19 @@ const tasks = allTasks.filter((t: any) => t.week === currentWeek);
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
+		flex-wrap: wrap;
+		gap: 1rem;
+	}
+
+	@media (max-width: 600px) {
+		.flex-header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+		
+		h1 {
+			font-size: 1.8rem;
+		}
 	}
 
 	h1 {

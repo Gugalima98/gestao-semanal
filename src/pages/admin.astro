@@ -278,6 +278,13 @@ for (let i = -2; i <= 3; i++) {
 		gap: 3rem;
 	}
 
+	@media (max-width: 900px) {
+		.tasks-grid {
+			grid-template-columns: 1fr;
+			gap: 2rem;
+		}
+	}
+
 	.grid-section {
 		display: flex;
 		flex-direction: column;
@@ -437,6 +444,17 @@ for (let i = -2; i <= 3; i++) {
 		display: flex;
 		flex-direction: column;
 		gap: 1.5rem;
+	}
+
+	@media (max-width: 480px) {
+		.modal-content {
+			padding: 1.5rem;
+			gap: 1rem;
+		}
+		
+		.bulk-content {
+			gap: 1.5rem;
+		}
 	}
 
 	.task-form {
