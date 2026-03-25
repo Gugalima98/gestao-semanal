@@ -298,22 +298,25 @@ for (let i = -2; i <= 3; i++) {
 	}
 
 	.bulk-del {
-		background: rgba(255, 77, 77, 0.1) !important;
-		color: #ff4d4d;
-		border: 1px solid rgba(255, 77, 77, 0.2);
-		padding: 0.35rem 0.8rem;
+		background: transparent !important;
+		color: rgba(255, 77, 77, 0.6);
+		border: 1px solid rgba(255, 77, 77, 0.3);
+		padding: 0.3rem 0.6rem;
 		border-radius: 6px;
-		font-size: 0.75rem;
+		font-size: 0.7rem;
 		font-weight: 500;
 		cursor: pointer;
-		margin-right: 0.8rem;
-		transition: var(--transition);
+		transition: all 0.2s ease;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
 	}
 
 	.bulk-del:hover {
-		background: rgba(255, 77, 77, 0.2) !important;
+		background: rgba(255, 77, 77, 0.1) !important;
+		color: #ff4d4d;
 		border-color: #ff4d4d;
-		transform: none;
+		box-shadow: 0 0 15px rgba(255, 77, 77, 0.1);
 	}
 
 	.admin-card-wrapper:hover {
