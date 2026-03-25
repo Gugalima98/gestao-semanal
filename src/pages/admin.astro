@@ -161,26 +161,34 @@ for (let i = -2; i <= 3; i++) {
 
 	<!-- Modal de Importação em Massa -->
 	<div id="bulk-modal-overlay" class="modal-overlay hidden">
-		<div class="modal glass">
-			<h2 id="bulk-modal-title">Importar em Massa</h2>
-			<p class="bulk-help">
-				Selecione seu arquivo .csv. <br/>
-				Colunas esperadas (sem cabeçalho preferencialmente): <br/>
-				<strong>Palavra-chave, URL_Alvo</strong>
-			</p>
+		<div class="modal glass bulk-modal">
+			<div class="modal-header">
+				<h2 id="bulk-modal-title">Importar em Massa</h2>
+				<button class="close-icon-btn" id="close-bulk-modal-icon">&times;</button>
+			</div>
 			
-			<div class="file-upload-zone">
-				<input type="file" id="bulk-file-input" accept=".csv" class="hidden" />
-				<label for="bulk-file-input" class="upload-label">
-					<span id="file-name-display">Clique para selecionar o arquivo .csv</span>
-				</label>
+			<div class="bulk-content">
+				<div class="format-guide glass">
+					<p><strong>Formato esperado:</strong></p>
+					<code>Palavra-chave, URL_Alvo</code>
+					<p class="guide-tip">Separe por vírgula ou ponto-e-vírgula em cada linha.</p>
+				</div>
+
+				<div class="file-upload-zone">
+					<input type="file" id="bulk-file-input" accept=".csv" class="hidden" />
+					<label for="bulk-file-input" class="upload-label glass">
+						<div class="upload-icon">📁</div>
+						<span id="file-name-display">Arraste ou clique para selecionar o CSV</span>
+						<p class="file-info">Máximo 5MB por arquivo</p>
+					</label>
+				</div>
 			</div>
 			
 			<input type="hidden" id="bulk-current-type" value="backlink" />
 			
 			<div class="modal-actions">
 				<button type="button" class="cancel-btn" id="close-bulk-modal">Cancelar</button>
-				<button type="button" class="save-btn" id="process-bulk">Iniciar Importação</button>
+				<button type="button" class="save-btn" id="process-bulk">🚀 Iniciar Importação</button>
 			</div>
 		</div>
 	</div>
@@ -382,28 +390,74 @@ for (let i = -2; i <= 3; i++) {
 		background: rgba(255, 255, 255, 0.15);
 	}
 
-	.bulk-area {
-		display: none;
+	.bulk-modal {
+		max-width: 500px;
+		padding: 2.5rem;
 	}
 
-	.file-upload-zone {
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
 		margin-bottom: 2rem;
-		text-align: center;
+	}
+
+	.close-icon-btn {
+		background: transparent;
+		border: none;
+		color: var(--text-secondary);
+		font-size: 1.5rem;
+		cursor: pointer;
+	}
+
+	.format-guide {
+		padding: 1rem;
+		border-radius: 12px;
+		margin-bottom: 2rem;
+		background: rgba(255, 255, 0, 0.05);
+		border: 1px solid rgba(255, 255, 0, 0.1);
+	}
+
+	.format-guide code {
+		display: block;
+		margin: 0.5rem 0;
+		color: var(--primary);
+		font-weight: 700;
+		font-size: 1rem;
+	}
+
+	.guide-tip {
+		font-size: 0.75rem;
+		opacity: 0.7;
 	}
 
 	.upload-label {
-		display: block;
-		padding: 2rem;
-		border: 2px dashed rgba(255, 255, 255, 0.1);
-		border-radius: 12px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		padding: 3rem 2rem;
+		border: 2px dashed rgba(255, 255, 255, 0.15);
+		border-radius: 16px;
+		background: rgba(255, 255, 255, 0.03);
 		cursor: pointer;
-		background: rgba(255, 255, 255, 0.02);
-		transition: var(--transition);
+		transition: all 0.3s ease;
 	}
 
 	.upload-label:hover {
-		background: rgba(255, 255, 255, 0.05);
+		background: rgba(255, 255, 255, 0.08);
 		border-color: var(--primary);
+		transform: translateY(-2px);
+	}
+
+	.upload-icon {
+		font-size: 2.5rem;
+		filter: drop-shadow(0 0 10px var(--primary));
+	}
+
+	.file-info {
+		font-size: 0.7rem;
+		opacity: 0.5;
 	}
 
 	.bulk-help {
@@ -544,11 +598,18 @@ for (let i = -2; i <= 3; i++) {
 	btnBulkArtigo?.addEventListener('click', () => openBulk('artigo'));
 	btnBulkBacklink?.addEventListener('click', () => openBulk('backlink'));
 	
-	closeBulkModal?.addEventListener('click', () => {
+	const closeBulkModal = document.getElementById('close-bulk-modal');
+	const closeBulkIcon = document.getElementById('close-bulk-modal-icon');
+	const bulkModalOverlay = document.getElementById('bulk-modal-overlay');
+	
+	const closeBulkFn = () => {
 		bulkModalOverlay?.classList.add('hidden');
 		bulkFileInput.value = '';
-		if (fileNameDisplay) fileNameDisplay.textContent = 'Clique para selecionar o arquivo .csv';
-	});
+		if (fileNameDisplay) fileNameDisplay.textContent = 'Arraste ou clique para selecionar o CSV';
+	};
+
+	closeBulkModal?.addEventListener('click', closeBulkFn);
+	closeBulkIcon?.addEventListener('click', closeBulkFn);
 
 	bulkFileInput?.addEventListener('change', () => {
 		if (bulkFileInput.files && bulkFileInput.files[0]) {
