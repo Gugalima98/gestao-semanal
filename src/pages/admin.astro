@@ -43,6 +43,17 @@ for (let i = -2; i <= 3; i++) {
 			<WeekSelector />
 		</section>
 
+		<section class="bulk-actions-bar glass">
+			<div class="selection-controls">
+				<label class="select-all-label">
+					<input type="checkbox" id="select-all" />
+					<span>Selecionar Tudo</span>
+				</label>
+				<span id="selection-count" class="hidden">0 selecionados</span>
+			</div>
+			<button id="delete-selected" class="delete-btn bulk-del hidden">Excluir Selecionados</button>
+		</section>
+
 		<div class="admin-controls glass">
 			<div class="stat-card">
 				<span class="label">Total de Tarefas</span>
@@ -675,6 +686,61 @@ for (let i = -2; i <= 3; i++) {
 		};
 		
 		reader.readAsText(file);
+	});
+
+	// Bulk Selection and Deletion
+	const selectAllCheckbox = document.getElementById('select-all') as HTMLInputElement;
+	const deleteSelectedBtn = document.getElementById('delete-selected');
+	const selectionCount = document.getElementById('selection-count');
+	const taskCheckboxes = () => document.querySelectorAll('.task-checkbox') as NodeListOf<HTMLInputElement>;
+
+	const updateSelectionUI = () => {
+		const selected = Array.from(taskCheckboxes()).filter(cb => cb.checked);
+		const count = selected.length;
+		
+		if (selectionCount) {
+			selectionCount.textContent = `${count} selecionado(s)`;
+			selectionCount.classList.toggle('hidden', count === 0);
+		}
+		
+		if (deleteSelectedBtn) {
+			deleteSelectedBtn.classList.toggle('hidden', count === 0);
+		}
+	};
+
+	selectAllCheckbox?.addEventListener('change', () => {
+		taskCheckboxes().forEach(cb => {
+			cb.checked = selectAllCheckbox.checked;
+		});
+		updateSelectionUI();
+	});
+
+	document.addEventListener('change', (e) => {
+		if ((e.target as HTMLElement).classList.contains('task-checkbox')) {
+			updateSelectionUI();
+		}
+	});
+
+	deleteSelectedBtn?.addEventListener('click', async () => {
+		const selectedIds = Array.from(taskCheckboxes())
+			.filter(cb => cb.checked)
+			.map(cb => cb.dataset.id);
+
+		if (selectedIds.length === 0) return;
+
+		if (confirm(`Deseja realmente excluir ${selectedIds.length} tarefa(s)?`)) {
+			try {
+				const res = await fetch('/api/tasks.json', {
+					method: 'DELETE',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ ids: selectedIds })
+				});
+				if (res.ok) window.location.reload();
+			} catch (err) {
+				console.error(err);
+				alert('Erro ao excluir tarefas');
+			}
+		}
 	});
 
 	taskForm?.addEventListener('submit', async (e) => {

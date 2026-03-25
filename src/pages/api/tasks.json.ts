@@ -68,15 +68,20 @@ export const POST: APIRoute = async ({ request }) => {
 
 export const DELETE: APIRoute = async ({ request }) => {
     try {
-        const { id } = await request.json();
-        let tasks = await getTasks() as any[];
+        const { id, ids } = await request.json();
+        const tasks = await getTasks() as any[];
 
-        tasks = tasks.filter((t: any) => t.id !== id);
-        await saveTasks(tasks);
+        let updatedTasks;
+        if (ids && Array.isArray(ids)) {
+            updatedTasks = tasks.filter(t => !ids.includes(t.id));
+        } else {
+            updatedTasks = tasks.filter(t => t.id !== id);
+        }
 
+        await saveTasks(updatedTasks);
         return new Response(JSON.stringify({ success: true }), { status: 200 });
     } catch (error) {
-        return new Response(JSON.stringify({ error: 'Erro ao excluir tarefa' }), { status: 500 });
+        return new Response(JSON.stringify({ error: 'Erro ao excluir tarefa(s)' }), { status: 500 });
     }
 };
 

@@ -1,5 +1,6 @@
 ---
 interface Props {
+  id: string;
   title: string;
   type: 'backlink' | 'artigo';
   status: 'pending' | 'progress' | 'done';
@@ -10,7 +11,7 @@ interface Props {
   published_url?: string;
 }
 
-const { title, type, status, description, link, focus_keyword, target_url, published_url } = Astro.props;
+const { id, title, type, status, description, link, focus_keyword, target_url, published_url } = Astro.props;
 
 const statusLabel = {
   pending: 'Pendente',
@@ -21,7 +22,10 @@ const statusLabel = {
 const finalLink = published_url || link;
 ---
 
-<div class="glass glass-interactive task-card">
+<div class="glass glass-interactive task-card" data-task-id={id}>
+	<div class="card-selection">
+		<input type="checkbox" class="task-checkbox" data-id={id} />
+	</div>
   <div class="card-header">
     <span class={`badge badge-${status}`}>{statusLabel[status]}</span>
     <span class="type-tag">{type}</span>
@@ -155,4 +159,23 @@ const finalLink = published_url || link;
     color: var(--text-secondary);
     font-style: italic;
   }
+	.card-selection {
+		position: absolute;
+		top: 1rem;
+		left: 1rem;
+		z-index: 10;
+	}
+
+	.task-checkbox {
+		width: 18px;
+		height: 18px;
+		cursor: pointer;
+		accent-color: var(--primary);
+		opacity: 0.6;
+		transition: var(--transition);
+	}
+
+	.task-checkbox:hover, .task-checkbox:checked {
+		opacity: 1;
+	}
 </style>
