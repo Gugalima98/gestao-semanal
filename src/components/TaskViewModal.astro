@@ -1,0 +1,289 @@
+---
+---
+
+<div id="view-modal-overlay" class="modal-overlay hidden">
+	<div class="glass modal-content">
+		<div class="modal-header">
+			<h2 id="view-modal-title">Detalhes da Entrega</h2>
+			<button class="close-icon-btn" id="close-view-modal">&times;</button>
+		</div>
+		
+		<div class="view-content">
+			<div class="view-group">
+				<span class="view-label">Palavra-chave:</span>
+				<span class="view-value" id="view-title"></span>
+			</div>
+
+			<div class="view-row">
+				<div class="view-group">
+					<span class="view-label">Tipo:</span>
+					<span class="view-value" id="view-type"></span>
+				</div>
+				<div class="view-group">
+					<span class="view-label">Status:</span>
+					<span class="view-value" id="view-status"></span>
+				</div>
+			</div>
+
+			<div class="view-group" id="view-desc-group">
+				<span class="view-label">Descrição:</span>
+				<p class="view-value desc-text" id="view-desc"></p>
+			</div>
+
+			<div class="view-seo-meta glass">
+				<div class="view-group">
+					<span class="view-label">Foco:</span>
+					<span class="view-value highlight" id="view-focus"></span>
+				</div>
+				<div class="view-group">
+					<span class="view-label" id="view-target-label">Alvo/Site:</span>
+					<span class="view-value highlight" id="view-target"></span>
+				</div>
+			</div>
+
+			<div class="view-group" id="view-published-group">
+				<span class="view-label">Link Publicado:</span>
+				<a href="#" target="_blank" class="view-value link" id="view-published"></a>
+			</div>
+		</div>
+		
+		<div class="modal-actions">
+			<button type="button" class="cancel-btn" id="close-view-btn">Fechar</button>
+		</div>
+	</div>
+</div>
+
+<style>
+	.modal-overlay {
+		position: fixed;
+		top: 0; left: 0; width: 100%; height: 100%;
+		background: rgba(0,0,0,0.8);
+		backdrop-filter: blur(5px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 9999;
+		transition: opacity 0.3s;
+	}
+
+	.modal-overlay.hidden {
+		display: none;
+		opacity: 0;
+	}
+
+	.hidden {
+		display: none !important;
+	}
+
+	.modal-content {
+		width: 90%;
+		max-width: 500px;
+		padding: 2.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		position: relative;
+	}
+
+	@media (max-width: 480px) {
+		.modal-content {
+			padding: 1.5rem;
+			gap: 1rem;
+		}
+	}
+
+	.view-content {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		margin-top: 1rem;
+	}
+
+	.view-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+	}
+
+	.view-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+	}
+
+	.view-label {
+		font-size: 0.8rem;
+		color: var(--text-secondary);
+		font-weight: 500;
+	}
+
+	.view-value {
+		font-size: 1.05rem;
+		color: var(--text-primary);
+		font-weight: 600;
+		word-break: break-word;
+	}
+
+	.view-value.desc-text {
+		font-weight: 400;
+		font-size: 0.95rem;
+		line-height: 1.5;
+	}
+
+	.view-value.highlight {
+		color: var(--primary);
+	}
+
+	.view-value.link {
+		color: var(--primary);
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	.view-value.link:hover {
+		color: var(--text-primary);
+	}
+
+	.view-seo-meta {
+		padding: 1.2rem;
+		border-radius: 12px;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		background: rgba(255, 255, 255, 0.02);
+	}
+	
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 0.5rem;
+	}
+
+	.close-icon-btn {
+		background: transparent;
+		border: none;
+		color: var(--text-secondary);
+		font-size: 1.5rem;
+		cursor: pointer;
+		transition: var(--transition);
+	}
+
+	.close-icon-btn:hover {
+		color: var(--text-primary);
+	}
+
+	.modal-actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 1rem;
+		margin-top: 1rem;
+	}
+
+	.cancel-btn {
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid var(--border-glass);
+		color: var(--text-primary);
+		padding: 0.8rem 1.5rem;
+		border-radius: 8px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: var(--transition);
+		width: 100%;
+		text-align: center;
+	}
+
+	.cancel-btn:hover {
+		background: rgba(255, 255, 255, 0.1);
+	}
+
+	@media (min-width: 481px) {
+		.cancel-btn {
+			width: auto;
+		}
+	}
+</style>
+
+<script>
+	const statusLabels = {
+		pending: 'Pendente',
+		progress: 'Em Andamento',
+		done: 'Concluído'
+	};
+
+	// Event Delegation for Modal
+	document.addEventListener('click', (e) => {
+		const target = e.target as HTMLElement;
+		
+		const modal = document.getElementById('view-modal-overlay');
+		if (!modal) return;
+
+		// Close Modals logic
+		if (target.closest('#close-view-modal') || target.closest('#close-view-btn') || target === modal) {
+			modal.classList.add('hidden');
+			return;
+		}
+
+		// Open Modal logic
+		const card = target.closest('.task-card');
+		if (!card) return;
+
+		// Evita abrir modal se clicar no link, checkbox ou botões
+		if (target.closest('a') || target.closest('button') || target.tagName === 'INPUT' || target.closest('.selection-top')) {
+			return;
+		}
+
+		try {
+			const dataStr = card.getAttribute('data-task');
+			if (!dataStr) return;
+			
+			const task = JSON.parse(dataStr);
+			
+			const titleEl = document.getElementById('view-title');
+			if (titleEl) titleEl.textContent = task.title || 'N/A';
+			
+			const typeEl = document.getElementById('view-type');
+			if (typeEl) typeEl.textContent = task.type === 'artigo' ? 'Artigo' : 'Backlink';
+			
+			const statusEl = document.getElementById('view-status');
+			if (statusEl) statusEl.textContent = statusLabels[task.status as keyof typeof statusLabels] || task.status;
+			
+			const descGroup = document.getElementById('view-desc-group');
+			const descEl = document.getElementById('view-desc');
+			if (descGroup && descEl) {
+				if (task.description) {
+					descGroup.classList.remove('hidden');
+					descEl.textContent = task.description;
+				} else {
+					descGroup.classList.add('hidden');
+				}
+			}
+
+			const focusEl = document.getElementById('view-focus');
+			if (focusEl) focusEl.textContent = task.focus_keyword || 'N/A';
+			
+			const targetEl = document.getElementById('view-target');
+			if (targetEl) targetEl.textContent = task.target_url || 'N/A';
+			
+			const targetLabelEl = document.getElementById('view-target-label');
+			if (targetLabelEl) targetLabelEl.textContent = task.type === 'backlink' ? 'Alvo (Destino):' : 'Site de Postagem:';
+
+			const linkUrl = task.published_url || task.link;
+			const pubGroup = document.getElementById('view-published-group');
+			const pubLink = document.getElementById('view-published') as HTMLAnchorElement;
+			if (pubGroup && pubLink) {
+				if (linkUrl) {
+					pubGroup.classList.remove('hidden');
+					pubLink.href = linkUrl;
+					pubLink.textContent = linkUrl;
+				} else {
+					pubGroup.classList.add('hidden');
+				}
+			}
+
+			modal.classList.remove('hidden');
+		} catch (err) {
+			console.error("Erro ao parsear dados da tarefa: ", err);
+		}
+	});
+</script>

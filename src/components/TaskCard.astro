@@ -9,9 +9,10 @@ interface Props {
   focus_keyword?: string;
   target_url?: string;
   published_url?: string;
+  showSelection?: boolean;
 }
 
-const { id, title, type, status, description, link, focus_keyword, target_url, published_url } = Astro.props;
+const { id, title, type, status, description, link, focus_keyword, target_url, published_url, showSelection = false } = Astro.props;
 
 const statusLabel = {
   pending: 'Pendente',
@@ -22,10 +23,12 @@ const statusLabel = {
 const finalLink = published_url || link;
 ---
 
-<div class="glass glass-interactive task-card" data-task-id={id}>
-	<div class="selection-top">
-		<input type="checkbox" class="task-checkbox" data-id={id} />
-	</div>
+<div class="glass glass-interactive task-card" data-task-id={id} data-task={JSON.stringify(Astro.props)}>
+	{showSelection && (
+		<div class="selection-top">
+			<input type="checkbox" class="task-checkbox" data-id={id} />
+		</div>
+	)}
 	
 	<div class="card-header">
 		<span class={`badge badge-${status}`}>{statusLabel[status]}</span>
@@ -127,10 +130,16 @@ const finalLink = published_url || link;
   }
 
   .truncate {
-    max-width: 150px;
+    max-width: 140px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  @media (max-width: 480px) {
+    .truncate {
+      max-width: 120px;
+    }
   }
 
   .card-footer {
@@ -167,6 +176,12 @@ const finalLink = published_url || link;
 		gap: 0.8rem;
 		transition: var(--transition);
 		position: relative;
+	}
+
+	@media (max-width: 480px) {
+		.task-card {
+			padding: 1rem;
+		}
 	}
 
 	.selection-top {

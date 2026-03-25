@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import TaskViewModal from '../components/TaskViewModal.astro';
 
 interface Props {
 	title: string;
@@ -20,5 +21,6 @@ const { title } = Astro.props;
 	</head>
 	<body>
 		<slot />
+		<TaskViewModal />
 	</body>
 </html>

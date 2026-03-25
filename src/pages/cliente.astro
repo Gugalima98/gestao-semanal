@@ -34,6 +34,21 @@ const tasks = allTasks.filter((t: any) => t.week === currentWeek);
 			<WeekSelector />
 		</section>
 
+		<div class="admin-controls glass">
+			<div class="stat-card">
+				<span class="label">Total de Tarefas</span>
+				<span class="value">{tasks.length}</span>
+			</div>
+			<div class="stat-card">
+				<span class="label">Concluídas</span>
+				<span class="value success">{tasks.filter((t: any) => t.status === 'done').length}</span>
+			</div>
+			<div class="stat-card">
+				<span class="label">Pendentes</span>
+				<span class="value warning">{tasks.filter((t: any) => t.status !== 'done').length}</span>
+			</div>
+		</div>
+
 		<div class="tasks-grid">
 			<div class="grid-section">
 				<div class="section-title">
@@ -77,10 +92,11 @@ const tasks = allTasks.filter((t: any) => t.week === currentWeek);
 		gap: 1rem;
 	}
 
-	@media (max-width: 600px) {
+	@media (max-width: 768px) {
 		.flex-header {
 			flex-direction: column;
-			align-items: flex-start;
+			text-align: center;
+			align-items: center;
 		}
 		
 		h1 {
@@ -132,8 +148,57 @@ const tasks = allTasks.filter((t: any) => t.week === currentWeek);
 	.cards-list {
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
+		gap: 3.5rem;
 	}
+
+	.admin-controls {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.5rem;
+		margin: 2rem 0;
+	}
+
+	@media (max-width: 768px) {
+		.admin-controls {
+			gap: 0.8rem;
+			padding: 0.5rem;
+			margin-bottom: 2rem;
+		}
+
+		.stat-card {
+			padding: 1rem 0.5rem !important;
+		}
+
+		.stat-card .label {
+			font-size: 0.6rem !important;
+		}
+
+		.stat-card .value {
+			font-size: 1.4rem !important;
+		}
+	}
+
+	.stat-card {
+		padding: 1.5rem;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+
+	.stat-card .label {
+		font-size: 0.8rem;
+		color: var(--text-secondary);
+		text-transform: uppercase;
+	}
+
+	.stat-card .value {
+		font-size: 1.8rem;
+		font-weight: 700;
+	}
+
+	.value.success { color: var(--success); }
+	.value.warning { color: var(--warning); }
 
 	.logout {
 		font-size: 0.9rem;

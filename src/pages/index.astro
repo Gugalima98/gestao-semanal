@@ -27,6 +27,8 @@ import Layout from '../layouts/Layout.astro';
 <style>
 	.login-page {
 		height: 100vh;
+		padding: 1.5rem;
+		box-sizing: border-box;
 	}
 
 	.login-card {
@@ -37,6 +39,13 @@ import Layout from '../layouts/Layout.astro';
 		display: flex;
 		flex-direction: column;
 		gap: 2rem;
+	}
+
+	@media (max-width: 480px) {
+		.login-card {
+			padding: 1.5rem;
+			gap: 1.5rem;
+		}
 	}
 
 	.header h1 {
@@ -97,6 +106,7 @@ import Layout from '../layouts/Layout.astro';
 		font-weight: 700;
 		cursor: pointer;
 		transition: var(--transition);
+		width: 100%; /* Força preenchimento */
 	}
 
 	.login-btn:hover {

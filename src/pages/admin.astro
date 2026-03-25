@@ -85,7 +85,7 @@ for (let i = -2; i <= 3; i++) {
 				<div class="cards-list">
 					{tasks.filter((t: any) => t.type === 'backlink').map((task: any) => (
 						<div class="admin-card-wrapper">
-							<TaskCard {...task} />
+							<TaskCard {...task} showSelection={true} />
 							<div class="actions">
 								<button class="edit" data-task={JSON.stringify(task)}>Editar</button>
 								<button class="delete" data-id={task.id}>Excluir</button>
@@ -109,7 +109,7 @@ for (let i = -2; i <= 3; i++) {
 				<div class="cards-list">
 					{tasks.filter((t: any) => t.type === 'artigo').map((task: any) => (
 						<div class="admin-card-wrapper">
-							<TaskCard {...task} />
+							<TaskCard {...task} showSelection={true} />
 							<div class="actions">
 								<button class="edit" data-task={JSON.stringify(task)}>Editar</button>
 								<button class="delete" data-id={task.id}>Excluir</button>
@@ -270,7 +270,9 @@ for (let i = -2; i <= 3; i++) {
 			position: fixed;
 			bottom: 0;
 			left: 0;
-			width: 100%;
+			right: 0;
+			width: 100vw;
+			box-sizing: border-box;
 			background: rgba(10, 10, 12, 0.9);
 			backdrop-filter: blur(15px);
 			-webkit-backdrop-filter: blur(15px);
@@ -317,8 +319,6 @@ for (let i = -2; i <= 3; i++) {
 			font-weight: 700;
 			text-align: center;
 		}
-
-		/* Esconder o texto longo se necessário, mas aqui vamos tentar manter curto */
 	}
 
 	.add-btn {
@@ -456,18 +456,15 @@ for (let i = -2; i <= 3; i++) {
 
 	.action-divider { display: none; }
 
-	.admin-card-wrapper:hover {
-		background: rgba(255, 255, 255, 0.04);
-		border-color: rgba(255, 255, 255, 0.1);
+	.admin-card-wrapper {
+		margin-bottom: 2rem;
 	}
 
 	.actions {
 		display: flex;
 		gap: 0.5rem;
-		padding: 1rem 1.5rem;
-		border-top: 1px solid var(--border-glass);
+		padding: 1rem 0;
 		justify-content: flex-end;
-		background: rgba(0, 0, 0, 0.2);
 	}
 
 	@media (max-width: 480px) {
@@ -608,6 +605,17 @@ for (let i = -2; i <= 3; i++) {
 		gap: 1rem;
 	}
 
+	@media (max-width: 600px) {
+		.input-row {
+			grid-template-columns: 1fr;
+			gap: 1rem;
+		}
+		
+		#bulk-format-example {
+			word-break: break-all;
+		}
+	}
+
 	.input-group {
 		display: flex;
 		flex-direction: column;
@@ -729,17 +737,31 @@ for (let i = -2; i <= 3; i++) {
 		margin-bottom: 1rem;
 		line-height: 1.4;
 	}
+
+	.save-btn {
+		background: var(--primary);
 		color: white;
 		border: none;
-		padding: 0.7rem 1.5rem;
+		padding: 0.8rem 1.5rem;
 		border-radius: 8px;
 		font-weight: 600;
 		cursor: pointer;
+		transition: var(--transition);
+	}
+
+	.save-btn:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 5px 15px -5px var(--primary);
+	}
+
+	.cancel-btn {
+		padding: 0.8rem 1.5rem;
+		border-radius: 8px;
+		font-weight: 500;
 	}
 
 	@media (max-width: 900px) {
 		.tasks-grid { grid-template-columns: 1fr; }
-		.admin-controls { grid-template-columns: 1fr; }
 	}
 </style>
 
