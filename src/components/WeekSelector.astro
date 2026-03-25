@@ -92,3 +92,16 @@ const weeksData = getWeekRange();
     box-shadow: 0 0 20px -5px var(--primary);
   }
 </style>
+
+<script>
+  // Centraliza a semana selecionada automaticamente
+  function centerActiveWeek() {
+    const activeBtn = document.querySelector('.week-btn.active');
+    if (activeBtn) {
+      activeBtn.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
+    }
+  }
+  
+  window.addEventListener('load', centerActiveWeek);
+  document.addEventListener('astro:page-load', centerActiveWeek);
+</script>
