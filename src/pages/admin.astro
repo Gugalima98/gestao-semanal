@@ -65,11 +65,12 @@ for (let i = -2; i <= 3; i++) {
 						<h2>Gerenciar Backlinks</h2>
 					</div>
 					<div class="section-actions" id="backlinks-actions">
-						<button class="bulk-del btn-bulk-delete hidden">🗑️ Excluir Selecionados (<span class="sel-count-txt">0</span>)</button>
 						<label class="select-all-label">
 							<input type="checkbox" class="select-all-group" data-target="backlink" />
 							<span>Selecionar Todos</span>
 						</label>
+						<div class="action-divider hidden"></div>
+						<button class="bulk-del btn-bulk-delete hidden">🗑️ Excluir Selecionados (<span class="sel-count-txt">0</span>)</button>
 					</div>
 				</div>
 				<div class="cards-list">
@@ -91,11 +92,12 @@ for (let i = -2; i <= 3; i++) {
 						<h2>Gerenciar Artigos</h2>
 					</div>
 					<div class="section-actions" id="artigos-actions">
-						<button class="bulk-del btn-bulk-delete hidden">🗑️ Excluir Selecionados (<span class="sel-count-txt">0</span>)</button>
 						<label class="select-all-label">
 							<input type="checkbox" class="select-all-group" data-target="artigo" />
 							<span>Selecionar Todos</span>
 						</label>
+						<div class="action-divider hidden"></div>
+						<button class="bulk-del btn-bulk-delete hidden">🗑️ Excluir Selecionados (<span class="sel-count-txt">0</span>)</button>
 					</div>
 				</div>
 				<div class="cards-list">
@@ -793,6 +795,7 @@ for (let i = -2; i <= 3; i++) {
 		
 		selCountTexts.forEach(txt => txt.textContent = count.toString());
 		bulkDeleteBtns.forEach(btn => btn.classList.toggle('hidden', count === 0));
+		document.querySelectorAll('.action-divider').forEach(div => div.classList.toggle('hidden', count === 0));
 	};
 
 	selectAllGroups.forEach(groupCb => {
