@@ -60,19 +60,16 @@ for (let i = -2; i <= 3; i++) {
 
 		<div class="tasks-grid">
 			<div class="grid-section">
-				<div class="section-header-flex">
 					<div class="section-title">
 						<h2>Gerenciar Backlinks</h2>
 					</div>
 					<div class="section-actions" id="backlinks-actions">
 						<label class="select-all-label">
 							<input type="checkbox" class="select-all-group" data-target="backlink" />
-							<span>Selecionar Todos</span>
+							<span>SELECIONAR TODOS</span>
 						</label>
-						<div class="action-divider hidden"></div>
 						<button class="bulk-del btn-bulk-delete hidden">🗑️ Excluir Selecionados (<span class="sel-count-txt">0</span>)</button>
 					</div>
-				</div>
 				<div class="cards-list">
 					{tasks.filter((t: any) => t.type === 'backlink').map((task: any) => (
 						<div class="admin-card-wrapper">
@@ -87,19 +84,16 @@ for (let i = -2; i <= 3; i++) {
 			</div>
 
 			<div class="grid-section">
-				<div class="section-header-flex">
 					<div class="section-title">
 						<h2>Gerenciar Artigos</h2>
 					</div>
 					<div class="section-actions" id="artigos-actions">
 						<label class="select-all-label">
 							<input type="checkbox" class="select-all-group" data-target="artigo" />
-							<span>Selecionar Todos</span>
+							<span>SELECIONAR TODOS</span>
 						</label>
-						<div class="action-divider hidden"></div>
 						<button class="bulk-del btn-bulk-delete hidden">🗑️ Excluir Selecionados (<span class="sel-count-txt">0</span>)</button>
 					</div>
-				</div>
 				<div class="cards-list">
 					{tasks.filter((t: any) => t.type === 'artigo').map((task: any) => (
 						<div class="admin-card-wrapper">
