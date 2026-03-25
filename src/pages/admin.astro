@@ -155,6 +155,30 @@ for (let i = -2; i <= 3; i++) {
 				</div>
 			</form>
 		</div>
+	<!-- Modal de Importação em Massa -->
+	<div id="bulk-modal-overlay" class="modal-overlay hidden">
+		<div class="modal glass">
+			<h2 id="bulk-modal-title">Importar em Massa</h2>
+			<p class="bulk-help">
+				Selecione seu arquivo .csv. <br/>
+				Colunas esperadas (sem cabeçalho preferencialmente): <br/>
+				<strong>Palavra-chave, URL_Alvo</strong>
+			</p>
+			
+			<div class="file-upload-zone">
+				<input type="file" id="bulk-file-input" accept=".csv" class="hidden" />
+				<label for="bulk-file-input" class="upload-label">
+					<span id="file-name-display">Clique para selecionar o arquivo .csv</span>
+				</label>
+			</div>
+			
+			<input type="hidden" id="bulk-current-type" value="backlink" />
+			
+			<div class="modal-actions">
+				<button type="button" class="cancel-btn" id="close-bulk-modal">Cancelar</button>
+				<button type="button" class="save-btn" id="process-bulk">Iniciar Importação</button>
+			</div>
+		</div>
 	</div>
 </Layout>
 
@@ -344,8 +368,46 @@ for (let i = -2; i <= 3; i++) {
 		cursor: pointer;
 	}
 
-	.save-btn {
-		background: var(--primary);
+	.add-btn.secondary {
+		background: rgba(255, 255, 255, 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		margin-right: 0.5rem;
+	}
+
+	.add-btn.secondary:hover {
+		background: rgba(255, 255, 255, 0.15);
+	}
+
+	.bulk-area {
+		display: none;
+	}
+
+	.file-upload-zone {
+		margin-bottom: 2rem;
+		text-align: center;
+	}
+
+	.upload-label {
+		display: block;
+		padding: 2rem;
+		border: 2px dashed rgba(255, 255, 255, 0.1);
+		border-radius: 12px;
+		cursor: pointer;
+		background: rgba(255, 255, 255, 0.02);
+		transition: var(--transition);
+	}
+
+	.upload-label:hover {
+		background: rgba(255, 255, 255, 0.05);
+		border-color: var(--primary);
+	}
+
+	.bulk-help {
+		font-size: 0.75rem;
+		color: var(--text-secondary);
+		margin-bottom: 1rem;
+		line-height: 1.4;
+	}
 		color: white;
 		border: none;
 		padding: 0.7rem 1.5rem;
@@ -451,6 +513,85 @@ for (let i = -2; i <= 3; i++) {
 			toggleTypeFields();
 			modalOverlay?.classList.remove('hidden');
 		});
+	});
+
+	// Bulk Import Logic Refined
+	const btnBulkArtigo = document.getElementById('btn-bulk-artigo');
+	const btnBulkBacklink = document.getElementById('btn-bulk-backlink');
+	
+	const closeBulkModal = document.getElementById('close-bulk-modal');
+	const bulkModalOverlay = document.getElementById('bulk-modal-overlay');
+	const bulkModalTitle = document.getElementById('bulk-modal-title');
+	const bulkCurrentType = document.getElementById('bulk-current-type') as HTMLInputElement;
+	const bulkFileInput = document.getElementById('bulk-file-input') as HTMLInputElement;
+	const fileNameDisplay = document.getElementById('file-name-display');
+	const processBulkBtn = document.getElementById('process-bulk');
+
+	const openBulk = (type: string) => {
+		bulkCurrentType.value = type;
+		if (bulkModalTitle) bulkModalTitle.textContent = `Importar ${type.charAt(0).toUpperCase() + type.slice(1)}s em Massa`;
+		bulkModalOverlay?.classList.remove('hidden');
+	};
+
+	btnBulkArtigo?.addEventListener('click', () => openBulk('artigo'));
+	btnBulkBacklink?.addEventListener('click', () => openBulk('backlink'));
+	
+	closeBulkModal?.addEventListener('click', () => {
+		bulkModalOverlay?.classList.add('hidden');
+		bulkFileInput.value = '';
+		if (fileNameDisplay) fileNameDisplay.textContent = 'Clique para selecionar o arquivo .csv';
+	});
+
+	bulkFileInput?.addEventListener('change', () => {
+		if (bulkFileInput.files && bulkFileInput.files[0]) {
+			if (fileNameDisplay) fileNameDisplay.textContent = bulkFileInput.files[0].name;
+		}
+	});
+
+	processBulkBtn?.addEventListener('click', async () => {
+		if (!bulkFileInput.files || !bulkFileInput.files[0]) return alert('Selecione um arquivo primeiro');
+		
+		const file = bulkFileInput.files[0];
+		const reader = new FileReader();
+		
+		reader.onload = async (e) => {
+			const text = e.target?.result as string;
+			const lines = text.split('\n').filter(l => l.trim());
+			
+			// Detectar e pular cabeçalho se houver
+			const startIdx = (lines[0].toLowerCase().includes('palavra') || lines[0].toLowerCase().includes('keyword')) ? 1 : 0;
+
+			const tasksToCreate = lines.slice(startIdx).map(line => {
+				const parts = line.split(/[;,]/).map(s => s.trim()); // Suporta vírgula ou ponto e vírgula
+				return {
+					type: bulkCurrentType.value,
+					week: currentWeek,
+					status: 'pending',
+					focus_keyword: parts[0],
+					target_url: parts[1],
+					title: parts[0]
+				};
+			});
+
+			try {
+				const res = await fetch('/api/tasks.json', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(tasksToCreate)
+				});
+
+				if (res.ok) {
+					window.location.reload();
+				} else {
+					alert('Erro ao importar tarefas');
+				}
+			} catch (err) {
+				console.error(err);
+				alert('Erro na conexão');
+			}
+		};
+		
+		reader.readAsText(file);
 	});
 
 	taskForm?.addEventListener('submit', async (e) => {

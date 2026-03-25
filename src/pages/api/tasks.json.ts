@@ -39,20 +39,30 @@ export const GET: APIRoute = async () => {
 
 export const POST: APIRoute = async ({ request }) => {
     try {
-        const newTask = await request.json();
+        const body = await request.json();
         const tasks = await getTasks() as any[];
 
-        const taskWithId = {
-            ...newTask,
-            id: Date.now().toString()
-        };
-
-        tasks.push(taskWithId);
-        await saveTasks(tasks);
-
-        return new Response(JSON.stringify(taskWithId), { status: 201 });
+        if (Array.isArray(body)) {
+            const tasksWithIds = body.map(task => ({
+                ...task,
+                id: (Date.now() + Math.random()).toString(),
+                title: task.focus_keyword || task.title || 'Sem título'
+            }));
+            tasks.push(...tasksWithIds);
+            await saveTasks(tasks);
+            return new Response(JSON.stringify(tasksWithIds), { status: 201 });
+        } else {
+            const taskWithId = {
+                ...body,
+                id: Date.now().toString(),
+                title: body.focus_keyword || body.title || 'Sem título'
+            };
+            tasks.push(taskWithId);
+            await saveTasks(tasks);
+            return new Response(JSON.stringify(taskWithId), { status: 201 });
+        }
     } catch (error) {
-        return new Response(JSON.stringify({ error: 'Erro ao salvar tarefa' }), { status: 500 });
+        return new Response(JSON.stringify({ error: 'Erro ao processar criação de tarefa(s)' }), { status: 500 });
     }
 };
 
