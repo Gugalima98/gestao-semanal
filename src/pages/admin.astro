@@ -195,8 +195,8 @@ for (let i = -2; i <= 3; i++) {
 			<div class="bulk-content">
 				<div class="format-guide glass">
 					<p><strong>Formato esperado:</strong></p>
-					<code id="bulk-format-example">Palavra-chave, URL_Alvo</code>
-					<p class="guide-tip" id="bulk-format-tip">Separe por vírgula ou ponto-e-vírgula em cada linha.</p>
+					<code id="bulk-format-example">Palavra-chave, URL_Alvo, URL_Postada(opcional)</code>
+					<p class="guide-tip" id="bulk-format-tip">Separe por vírgula ou ponto-e-vírgula. Se a URL postada estiver presente, a tarefa será marcada como concluída.</p>
 				</div>
 
 				<div class="file-upload-zone">
@@ -883,13 +883,13 @@ for (let i = -2; i <= 3; i++) {
 		if (bulkModalTitle) bulkModalTitle.textContent = `Importar ${isArtigo ? 'Artigos' : 'Backlinks'} em Massa`;
 		
 		if (bulkFormatExample) {
-			bulkFormatExample.textContent = isArtigo ? 'Palavra-chave, Site_de_Postagem' : 'Palavra-chave, URL_Alvo';
+			bulkFormatExample.textContent = isArtigo ? 'Palavra-chave, Site_de_Postagem, URL_Artigo_Postado' : 'Palavra-chave, URL_Alvo, URL_Backlink_Postado';
 		}
 		
 		if (bulkFormatTip) {
 			bulkFormatTip.textContent = isArtigo 
-				? 'Ex: Marketing Digital, https://blog.com' 
-				: 'Ex: SEO, https://seusite.com';
+				? 'Ex: Marketing Digital, https://blog.com, https://blog.com/artigo-final' 
+				: 'Ex: SEO, https://seusite.com, https://parceiro.com/meu-backlink';
 		}
 
 		bulkModalOverlay?.classList.remove('hidden');
@@ -930,12 +930,16 @@ for (let i = -2; i <= 3; i++) {
 
 			const tasksToCreate = lines.slice(startIdx).map(line => {
 				const parts = line.split(/[;,]/).map(s => s.trim()); // Suporta vírgula ou ponto e vírgula
+				const publishedUrl = parts[2] || '';
+				const hasPublishedUrl = publishedUrl.length > 0;
+
 				return {
 					type: bulkCurrentType.value,
 					week: currentWeek,
-					status: 'progress',
+					status: hasPublishedUrl ? 'done' : 'progress',
 					focus_keyword: parts[0],
 					target_url: parts[1],
+					published_url: publishedUrl,
 					title: parts[0]
 				};
 			});
