@@ -82,17 +82,39 @@ export const GET: APIRoute = async () => {
 
 export const POST: APIRoute = async ({ request }) => {
     try {
-        const body = await request.json();
+        const rawText = await request.text();
+        console.log("POST raw body:", rawText.substring(0, 500));
+
+        let body;
+        try {
+            body = JSON.parse(rawText);
+        } catch (parseError: any) {
+            console.error("JSON parse error:", parseError.message);
+            return new Response(JSON.stringify({
+                error: "JSON inválido",
+                details: parseError.message,
+                rawPreview: rawText.substring(0, 200)
+            }), { status: 400 });
+        }
+
         const tasks = await getTasks() as any[];
+        console.log("Current tasks count:", tasks.length);
 
         if (Array.isArray(body)) {
-            const tasksWithIds = body.map(task => ({
-                ...task,
-                id: (Date.now() + Math.random()).toString(),
-                title: task.focus_keyword || task.title || 'Sem título'
-            }));
+            console.log("Bulk import:", body.length, "tasks");
+            const tasksWithIds = body.map((task, idx) => {
+                if (!task.focus_keyword && !task.title) {
+                    console.warn(`Task ${idx} missing focus_keyword and title`);
+                }
+                return {
+                    ...task,
+                    id: (Date.now() + Math.random()).toString(),
+                    title: task.focus_keyword || task.title || 'Sem título'
+                };
+            });
             tasks.push(...tasksWithIds);
             await saveTasks(tasks);
+            console.log("Saved", tasksWithIds.length, "tasks. Total:", tasks.length);
             return new Response(JSON.stringify(tasksWithIds), { status: 201 });
         } else {
             const taskWithId = {
@@ -105,7 +127,11 @@ export const POST: APIRoute = async ({ request }) => {
             return new Response(JSON.stringify(taskWithId), { status: 201 });
         }
     } catch (error: any) {
-        return new Response(JSON.stringify({ error: `Erro POST: ${error.message}` }), { status: 500 });
+        console.error("POST Error:", error);
+        return new Response(JSON.stringify({
+            error: `Erro POST: ${error.message}`,
+            stack: error.stack
+        }), { status: 500 });
     }
 };
 
