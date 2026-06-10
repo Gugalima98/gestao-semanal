@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import Redis from 'ioredis';
+import { kv, createClient } from '@vercel/kv';
 
 export const prerender = false;
 
@@ -18,17 +19,17 @@ const getEnv = (key: string) => {
     return undefined;
 };
 
-const isProduction = !!(getEnv('REDIS_URL') || getEnv('KV_URL') || getEnv('VERCEL'));
+const isProduction = !!(getEnv('VERCEL'));
 
-// Global Redis instance for connection reuse
+// Redis client - supports both ioredis (REDIS_URL) and Vercel KV (KV_REST_API_URL + token)
 let redisClient: Redis | null = null;
+let kvClient: any = null;
 
-function getClient() {
+function getRedisClient() {
     if (redisClient) return redisClient;
 
-    const redisUrl = getEnv('REDIS_URL') || getEnv('KV_URL');
-    if (redisUrl) {
-        // ioredis handles redis:// URLs natively
+    const redisUrl = getEnv('REDIS_URL');
+    if (redisUrl && redisUrl.startsWith('redis://')) {
         redisClient = new Redis(redisUrl, {
             connectTimeout: 10000,
             maxRetriesPerRequest: 1
@@ -38,15 +39,47 @@ function getClient() {
     return null;
 }
 
+function getKVClient() {
+    if (kvClient) return kvClient;
+
+    const url = getEnv('KV_REST_API_URL') || getEnv('KV_URL') || getEnv('UPSTASH_REDIS_REST_URL');
+    const token = getEnv('KV_REST_API_TOKEN') || getEnv('KV_TOKEN') || getEnv('UPSTASH_REDIS_REST_TOKEN');
+
+    if (url && token) {
+        const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
+        kvClient = createClient({ url: cleanUrl, token });
+        return kvClient;
+    }
+    return null;
+}
+
+function getClient() {
+    // Try ioredis first (REDIS_URL)
+    const redis = getRedisClient();
+    if (redis) return { type: 'redis', client: redis };
+
+    // Fallback to Vercel KV
+    const kv = getKVClient();
+    if (kv) return { type: 'kv', client: kv };
+
+    return null;
+}
+
 async function getTasks() {
     try {
         if (isProduction) {
             const client = getClient();
-            if (!client) throw new Error("REDIS_URL não configurada em produção");
+            if (!client) throw new Error("Redis não configurado em produção");
 
-            const data = await client.get('tasks');
-            if (!data) return [];
-            return JSON.parse(data);
+            if (client.type === 'redis') {
+                const data = await client.client.get('tasks');
+                if (!data) return [];
+                return JSON.parse(data);
+            } else {
+                // Vercel KV
+                const data = await client.client.get('tasks');
+                return data || [];
+            }
         }
         const fileContent = await fs.readFile(dataPath, 'utf-8');
         return JSON.parse(fileContent);
@@ -57,18 +90,25 @@ async function getTasks() {
 }
 
 async function saveTasks(tasks: any[]) {
-    try {
-        if (isProduction) {
-            const client = getClient();
-            if (!client) throw new Error("REDIS_URL não configurada para salvamento");
-
-            await client.set('tasks', JSON.stringify(tasks));
-        } else {
-            await fs.writeFile(dataPath, JSON.stringify(tasks, null, 2));
+    if (isProduction) {
+        const client = getClient();
+        if (!client) {
+            console.error("SAVE Error: Redis não configurado");
+            throw new Error("Redis não configurado");
         }
-    } catch (error: any) {
-        console.error("SAVE Error:", error);
-        throw error;
+        try {
+            if (client.type === 'redis') {
+                await client.client.set('tasks', JSON.stringify(tasks));
+            } else {
+                // Vercel KV
+                await client.client.set('tasks', tasks);
+            }
+        } catch (error: any) {
+            console.error("SAVE Redis Error:", error.message);
+            throw error;
+        }
+    } else {
+        await fs.writeFile(dataPath, JSON.stringify(tasks, null, 2));
     }
 }
 
